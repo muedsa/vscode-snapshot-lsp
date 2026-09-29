@@ -64,13 +64,15 @@ export function scanStructure(source: string): SnapshotStructure {
       }
       end++;
     }
-    if (end === source.length) {
+    const incomplete = end === source.length;
+    if (incomplete) {
       if (quote) quotedRanges.push({ start: quoteStart, end });
-      break;
     }
-    const selfClosing = !closing && /\/\s*>$/.test(source.slice(nameStart, end + 1));
-    tags.push({ name, start, nameStart, end: end + 1, closing, selfClosing });
-    cursor = end + 1;
+    const tagEnd = incomplete ? end : end + 1;
+    const selfClosing = !closing && !incomplete && /\/\s*>$/.test(source.slice(nameStart, tagEnd));
+    tags.push({ name, start, nameStart, end: tagEnd, closing, selfClosing });
+    if (incomplete) break;
+    cursor = tagEnd;
   }
   return { tags, ignored, quotedRanges };
 }

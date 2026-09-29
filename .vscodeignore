@@ -1,5 +1,6 @@
 .vscode/**
 .vscode-test/**
+.release-check/**
 .github/**
 src/**
 test/**

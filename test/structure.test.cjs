@@ -42,6 +42,24 @@ test('不匹配的结束标签不会阻断后续大纲', () => {
   );
 });
 
+test('未闭合标签在输入过程中仍显示于大纲', () => {
+  for (const source of ['<Snapshot', '<Snapshot><Container', '<Snapshot><Container note="<Fake']) {
+    const tree = buildTagTree(scanStructure(source).tags);
+    assert.equal(tree[0]?.tag.name, 'Snapshot');
+    assert.equal(tree[0].end, source.length);
+    assert.deepEqual(
+      Array.from(tree[0].children, (node) => node.tag.name),
+      source === '<Snapshot' ? [] : ['Container'],
+    );
+  }
+  const closing = '<Snapshot><Text/></Snapshot';
+  assert.equal(buildTagTree(scanStructure(closing).tags)[0].end, closing.length);
+  assert.deepEqual(
+    Array.from(scanStructure('<Snapshot><!-- <Fake').tags, (tag) => tag.name),
+    ['Snapshot'],
+  );
+});
+
 test('格式化只调整标记缩进，保留跨行属性、文本和注释', () => {
   const source =
     '<Snapshot>\n<Container\ncolor="red">\n  <Text>hello</Text>\n  原样文本\n<!--\n  原样注释\n-->\n</Container>\n</Snapshot>\n';

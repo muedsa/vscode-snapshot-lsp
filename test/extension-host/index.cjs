@@ -28,6 +28,15 @@ async function run() {
     symbols?.[0]?.children.some((item) => item.name === 'Container'),
     '大纲应显示嵌套标签',
   );
+  const incompleteOutline = await vscode.workspace.openTextDocument({
+    language: 'snapshot',
+    content: '<Snapshot><Container',
+  });
+  const incompleteSymbols = await vscode.commands.executeCommand(
+    'vscode.executeDocumentSymbolProvider',
+    incompleteOutline.uri,
+  );
+  assert.equal(incompleteSymbols?.[0]?.children[0]?.name, 'Container', '未闭合标签应显示在大纲中');
 
   const unformatted = await vscode.workspace.openTextDocument({
     language: 'snapshot',
