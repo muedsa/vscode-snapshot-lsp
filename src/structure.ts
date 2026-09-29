@@ -15,6 +15,7 @@ export interface SnapshotRange {
 export interface SnapshotStructure {
   tags: SnapshotTag[];
   ignored: SnapshotRange[];
+  quotedRanges: SnapshotRange[];
 }
 
 const namePattern = /[A-Za-z][A-Za-z0-9:_-]*/y;
@@ -23,6 +24,7 @@ const namePattern = /[A-Za-z][A-Za-z0-9:_-]*/y;
 export function scanStructure(source: string): SnapshotStructure {
   const tags: SnapshotTag[] = [];
   const ignored: SnapshotRange[] = [];
+  const quotedRanges: SnapshotRange[] = [];
   let cursor = 0;
   while (cursor < source.length) {
     const start = source.indexOf('<', cursor);
@@ -45,24 +47,32 @@ export function scanStructure(source: string): SnapshotStructure {
       continue;
     }
     let quote: string | undefined;
+    let quoteStart = 0;
     let end = nameStart + name.length;
     while (end < source.length) {
       const character = source[end];
       if (quote) {
-        if (character === quote) quote = undefined;
+        if (character === quote) {
+          quotedRanges.push({ start: quoteStart, end: end + 1 });
+          quote = undefined;
+        }
       } else if (character === '"' || character === "'") {
         quote = character;
+        quoteStart = end;
       } else if (character === '>') {
         break;
       }
       end++;
     }
-    if (end === source.length) break;
+    if (end === source.length) {
+      if (quote) quotedRanges.push({ start: quoteStart, end });
+      break;
+    }
     const selfClosing = !closing && /\/\s*>$/.test(source.slice(nameStart, end + 1));
     tags.push({ name, start, nameStart, end: end + 1, closing, selfClosing });
     cursor = end + 1;
   }
-  return { tags, ignored };
+  return { tags, ignored, quotedRanges };
 }
 
 export interface SnapshotNode {
@@ -107,11 +117,12 @@ export interface IndentEdit {
 
 /** 仅整理标签及其跨行属性的前导缩进，保留文本、注释、CDATA 和原有换行。 */
 export function formatIndentation(source: string, indentUnit: string): IndentEdit[] {
-  const { tags, ignored } = scanStructure(source);
+  const { tags, ignored, quotedRanges } = scanStructure(source);
   const edits: IndentEdit[] = [];
   let depth = 0;
   let tagIndex = 0;
   let ignoredIndex = 0;
+  let quotedIndex = 0;
   let lineStart = 0;
   while (lineStart < source.length) {
     const lineEnd = source.indexOf('\n', lineStart);
@@ -127,10 +138,15 @@ export function formatIndentation(source: string, indentUnit: string): IndentEdi
     }
     while (ignoredIndex < ignored.length && ignored[ignoredIndex].end <= contentStart) ignoredIndex++;
     const insideIgnored = ignoredIndex < ignored.length && ignored[ignoredIndex].start <= contentStart;
+    while (quotedIndex < quotedRanges.length && quotedRanges[quotedIndex].end <= lineStart) quotedIndex++;
+    const insideQuoted =
+      quotedIndex < quotedRanges.length &&
+      quotedRanges[quotedIndex].start < lineStart &&
+      lineStart < quotedRanges[quotedIndex].end;
     const current = tags[tagIndex];
     const startsTag = current?.start === contentStart;
     const insideTag = current && current.start < contentStart && contentStart < current.end;
-    if (!insideIgnored && contentStart < end && (startsTag || insideTag)) {
+    if (!insideIgnored && !insideQuoted && contentStart < end && (startsTag || insideTag)) {
       const level = startsTag ? Math.max(0, depth - (current.closing ? 1 : 0)) : depth + 1;
       const desired = indentUnit.repeat(level);
       if (leading !== desired) edits.push({ start: lineStart, end: contentStart, text: desired });

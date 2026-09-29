@@ -55,3 +55,11 @@ test('格式化支持制表符并保留 CRLF', () => {
   const source = '<Snapshot>\r\n<Text/>\r\n</Snapshot>\r\n';
   assert.equal(formatted(source, '\t'), '<Snapshot>\r\n\t<Text/>\r\n</Snapshot>\r\n');
 });
+
+test('格式化保留双引号和单引号跨行属性值中的缩进', () => {
+  const source = '<Snapshot>\n<Text value="hello\nworld"\nfontFamily=\'first\n   second\nlast\'/>\n</Snapshot>\n';
+  const expected =
+    '<Snapshot>\n  <Text value="hello\nworld"\n    fontFamily=\'first\n   second\nlast\'/>\n</Snapshot>\n';
+  assert.equal(formatted(source), expected);
+  assert.equal(formatted(expected), expected);
+});
