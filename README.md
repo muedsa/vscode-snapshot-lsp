@@ -44,6 +44,8 @@ pnpm run build
 
 `pnpm run test:extension` 会启动独立的 VS Code 扩展开发主机，检查激活、诊断、补全和重启命令。默认下载稳定版 VS Code；若要复用本机安装，设置 `VSCODE_EXECUTABLE_PATH` 为 VS Code 可执行文件的绝对路径。
 
+`pnpm run test:vsix` 会先打包，再从 VSIX 解压扩展并运行相同的扩展主机检查，用于验证最终安装包不依赖工作区中的 `node_modules`。
+
 语言服务无响应时，可从命令面板运行“Snapshot: 重启语言服务器”。
 
 ## 打包和安装
@@ -51,7 +53,7 @@ pnpm run build
 ```bash
 pnpm install --frozen-lockfile
 pnpm test
-pnpm run package
+pnpm run test:vsix
 code --install-extension vscode-snapshot-lsp-0.1.1.vsix --force
 ```
 

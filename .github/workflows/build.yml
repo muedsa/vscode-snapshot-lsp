@@ -31,10 +31,8 @@ jobs:
         run: pnpm test
       - name: 检查代码格式
         run: pnpm run format:check
-      - name: 检查扩展主机
-        run: xvfb-run -a pnpm run test:extension
-      - name: 打包扩展
-        run: pnpm run package
+      - name: 验证安装包中的扩展
+        run: xvfb-run -a pnpm run test:vsix
       - uses: actions/upload-artifact@v4
         with:
           name: snapshot-vsix
