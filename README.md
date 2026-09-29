@@ -59,4 +59,6 @@ code --install-extension vscode-snapshot-lsp-0.1.1.vsix --force
 
 `pnpm run package` 会生成可安装的 VSIX，并把客户端和 Snapshot 语言服务器编入包内。安装 VSIX 的机器无需另行安装 npm 依赖。也可以在 VS Code 的扩展视图中选择“从 VSIX 安装”。
 
+VSIX 中包含 [第三方许可](THIRD_PARTY_NOTICES.md)。更新生产依赖后运行 `pnpm run notices:generate`，打包前会自动检查该清单是否与依赖一致。
+
 GitHub Actions 在推送、拉取请求和手动触发时运行测试并打包 VSIX。构建产物可从对应工作流的 `snapshot-vsix` artifact 下载。工作流使用仓库的 `GITHUB_TOKEN` 读取 GitHub Packages 中的 `@muedsa/snapshot-lsp`；若该包尚未授权此仓库访问，需要在包的设置中授予仓库读取权限。

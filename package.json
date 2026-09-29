@@ -146,11 +146,13 @@
     "check": "tsc --noEmit -p tsconfig.json",
     "format": "prettier --write src test scripts .github .vscode package.json tsconfig.json language-configuration.json pnpm-workspace.yaml README.md CHANGELOG.md .prettierrc.json",
     "format:check": "prettier --check src test scripts .github .vscode package.json tsconfig.json language-configuration.json pnpm-workspace.yaml README.md CHANGELOG.md .prettierrc.json",
+    "notices:generate": "node scripts/notices.mjs --write",
+    "notices:check": "node scripts/notices.mjs --check",
     "test": "pnpm run build && node --test test/*.test.cjs",
     "test:extension": "pnpm run build && node scripts/test-extension-host.mjs",
     "test:vsix": "pnpm run package && node scripts/test-vsix.mjs",
     "package": "vsce package --no-dependencies",
-    "vscode:prepublish": "pnpm run build"
+    "vscode:prepublish": "pnpm run notices:check && pnpm run build"
   },
   "dependencies": {
     "@muedsa/snapshot-lsp": "^0.1.1",
