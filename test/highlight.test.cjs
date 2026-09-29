@@ -1,0 +1,49 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const { resolve } = require('node:path');
+const { runInNewContext } = require('node:vm');
+const { buildSync } = require('esbuild');
+
+const built = buildSync({
+  entryPoints: [resolve(__dirname, '../src/highlight.ts')],
+  bundle: true,
+  platform: 'node',
+  format: 'cjs',
+  write: false,
+});
+const compiledModule = { exports: {} };
+runInNewContext(built.outputFiles[0].text, { module: compiledModule, exports: compiledModule.exports });
+const { scanHighlights } = compiledModule.exports;
+let catalog;
+test.before(async () => {
+  catalog = (await import('@muedsa/snapshot-lsp')).tags;
+});
+
+function parts(source, kind) {
+  return Array.from(scanHighlights(source, catalog))
+    .filter((span) => span.kind === kind)
+    .map((span) => source.slice(span.start, span.end));
+}
+
+test('扫描标签、属性、属性值、注释和 CDATA，忽略其中的伪标签', () => {
+  const source =
+    '<Snapshot type="png" debug="true"><!-- <Fake x="bad"> --><Text color="#fff" fontSize="18" fontStyle="BOLD">a <![CDATA[<b>]]></Text></Snapshot>';
+  assert.deepEqual(parts(source, 'tag'), ['Snapshot', 'Text', 'Text', 'Snapshot']);
+  assert.deepEqual(parts(source, 'attribute'), ['type', 'debug', 'color', 'fontSize', 'fontStyle']);
+  assert.deepEqual(parts(source, 'enum'), ['"png"']);
+  assert.deepEqual(parts(source, 'boolean'), ['"true"']);
+  assert.deepEqual(parts(source, 'color'), ['"#fff"']);
+  assert.deepEqual(parts(source, 'number'), ['"18"']);
+  assert.deepEqual(parts(source, 'string'), ['"BOLD"']);
+  assert.deepEqual(parts(source, 'comment'), ['<!-- <Fake x="bad"> -->']);
+  assert.deepEqual(parts(source, 'cdata'), ['<![CDATA[<b>]]>']);
+});
+
+test('跨行属性值中的尖括号不会结束标签', () => {
+  const source = '<Container note="a > <Fake>"\n color="#fff" />';
+  assert.deepEqual(parts(source, 'tag'), ['Container']);
+  assert.deepEqual(parts(source, 'attribute'), ['note', 'color']);
+  assert.deepEqual(parts(source, 'string'), ['"a > <Fake>"']);
+  assert.deepEqual(parts(source, 'color'), ['"#fff"']);
+  assert.ok(parts(source, 'punctuation').includes('/>'));
+});

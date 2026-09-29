@@ -1,0 +1,31 @@
+{
+  "comments": {
+    "blockComment": ["<!--", "-->"]
+  },
+  "brackets": [["<", ">"]],
+  "autoClosingPairs": [
+    { "open": "\"", "close": "\"" },
+    { "open": "'", "close": "'" }
+  ],
+  "surroundingPairs": [
+    ["\"", "\""],
+    ["'", "'"]
+  ],
+  "indentationRules": {
+    "increaseIndentPattern": "^\\s*(?:<(?![!/?])[A-Za-z][A-Za-z0-9:_-]*(?:\\s+(?:\\\"[^\\\"]*\\\"|'[^']*'|[^'\\\"<>])*)?|[A-Za-z_:][A-Za-z0-9:._-]*\\s*=.*)(?<!/)>\\s*$",
+    "decreaseIndentPattern": "^\\s*</[A-Za-z][A-Za-z0-9:_-]*\\s*>"
+  },
+  "onEnterRules": [
+    {
+      "beforeText": "^\\s*<(?![!/?])[A-Za-z][A-Za-z0-9:_-]*(?:\\s+.*)?(?<!/)>\\s*$",
+      "afterText": "^\\s*</[A-Za-z][A-Za-z0-9:_-]*\\s*>",
+      "action": { "indent": "indentOutdent" }
+    }
+  ],
+  "folding": {
+    "markers": {
+      "start": "^\\s*<!--(?!.*-->)",
+      "end": "-->"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+<Snapshot type="png" background="#020617">
+  <Container
+    width="720"
+    height="420"
+    padding="48"
+    color="#0F172A"
+    border="1 SOLID #334155"
+    borderRadius="32">
+    <Column crossAxisAlignment="START" mainAxisAlignment="CENTER">
+      <Text color="#38BDF8" fontSize="18" fontStyle="BOLD">SNAPSHOT PLAYGROUND</Text>
+      <Container height="18" />
+      <Text color="#F8FAFC" fontSize="48" fontStyle="BOLD">声明式构建图片</Text>
+      <Container height="14" />
+      <Text color="#94A3B8" fontSize="24">Widget tree → Layout → Skia → Image</Text>
+      <Container height="36" />
+      <Container
+        padding="(12,20)"
+        color="#082F49"
+        border="1 SOLID #0EA5E9"
+        borderRadius="24">
+        <Text color="#BAE6FD" fontSize="17">PNG · JPEG · WebP</Text>
+      </Container>
+    </Column>
+  </Container>
+</Snapshot>

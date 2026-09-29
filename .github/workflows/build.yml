@@ -1,0 +1,42 @@
+name: 构建 VSIX
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+          registry-url: https://npm.pkg.github.com
+          scope: '@muedsa'
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: 检查语言服务器
+        run: pnpm test
+      - name: 检查代码格式
+        run: pnpm run format:check
+      - name: 检查扩展主机
+        run: xvfb-run -a pnpm run test:extension
+      - name: 打包扩展
+        run: pnpm run package
+      - uses: actions/upload-artifact@v4
+        with:
+          name: snapshot-vsix
+          path: '*.vsix'
+          if-no-files-found: error
