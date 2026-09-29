@@ -31,6 +31,8 @@ jobs:
         run: pnpm test
       - name: 检查代码格式
         run: pnpm run format:check
+      - name: 检查发布元数据
+        run: pnpm run release:check
       - name: 验证安装包中的扩展
         run: xvfb-run -a pnpm run test:vsix
       - uses: actions/upload-artifact@v4
