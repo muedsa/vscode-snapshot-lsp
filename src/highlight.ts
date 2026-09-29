@@ -7,6 +7,11 @@ export interface HighlightSpan {
   end: number;
 }
 
+export interface HighlightWindow {
+  from: number;
+  to: number;
+}
+
 export type HighlightCatalog = Record<
   string,
   { attributes: Record<string, { kind: string; values?: readonly string[] }> }
@@ -28,16 +33,18 @@ function attributeValueKind(catalog: HighlightCatalog, tag: string, attribute: s
 }
 
 /** 扫描 Snapshot 标记，不依赖 VS Code 的 TextMate 语法或语言服务器。 */
-export function scanHighlights(source: string, catalog: HighlightCatalog): HighlightSpan[] {
+export function scanHighlights(source: string, catalog: HighlightCatalog, window?: HighlightWindow): HighlightSpan[] {
   const spans: HighlightSpan[] = [];
   const add = (kind: HighlightKind, start: number, end: number) => {
-    if (end > start) spans.push({ kind, start, end });
+    const clippedStart = Math.max(start, window?.from ?? 0);
+    const clippedEnd = Math.min(end, window?.to ?? source.length);
+    if (clippedEnd > clippedStart) spans.push({ kind, start: clippedStart, end: clippedEnd });
   };
 
   let i = 0;
-  while (i < source.length) {
+  while (i < (window?.to ?? source.length)) {
     const lt = source.indexOf('<', i);
-    if (lt < 0) break;
+    if (lt < 0 || lt >= (window?.to ?? source.length)) break;
 
     if (source.startsWith('<!--', lt)) {
       const end = source.indexOf('-->', lt + 4);

@@ -47,3 +47,16 @@ test('跨行属性值中的尖括号不会结束标签', () => {
   assert.deepEqual(parts(source, 'color'), ['"#fff"']);
   assert.ok(parts(source, 'punctuation').includes('/>'));
 });
+
+test('大文件窗口着色保留前文词法状态，只返回窗口内范围', () => {
+  const source = '<!-- <Fake/> -->\n<Snapshot><Text color="#fff">内容</Text></Snapshot>\n<Container/>';
+  const from = source.indexOf('<Text');
+  const to = source.indexOf('</Snapshot>');
+  const spans = Array.from(scanHighlights(source, catalog, { from, to }));
+  assert.deepEqual(
+    spans.filter((span) => span.kind === 'tag').map((span) => source.slice(span.start, span.end)),
+    ['Text', 'Text'],
+  );
+  assert.ok(spans.every((span) => span.start >= from && span.end <= to));
+  assert.ok(!spans.some((span) => source.slice(span.start, span.end).includes('Fake')));
+});

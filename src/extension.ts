@@ -6,12 +6,14 @@ import {
   type ServerOptions,
 } from 'vscode-languageclient/node';
 import { registerSnapshotColorizer } from './colorizer';
+import { registerEditorFeatures } from './editor-features';
 
 let client: LanguageClient | undefined;
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   const { tags } = await import('@muedsa/snapshot-lsp');
   registerSnapshotColorizer(context, tags);
+  registerEditorFeatures(context);
   context.subscriptions.push(
     vscode.commands.registerCommand('snapshot.restartLanguageServer', () => client?.restart()),
   );

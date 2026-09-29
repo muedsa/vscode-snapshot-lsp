@@ -22,6 +22,25 @@ async function run() {
   assert.equal(sample.languageId, 'snapshot', '.snapshot 文件应自动识别为 Snapshot 语言');
   await vscode.window.showTextDocument(sample);
   await extension.activate();
+  const symbols = await vscode.commands.executeCommand('vscode.executeDocumentSymbolProvider', sample.uri);
+  assert.equal(symbols?.[0]?.name, 'Snapshot', '大纲应显示根标签');
+  assert.ok(
+    symbols?.[0]?.children.some((item) => item.name === 'Container'),
+    '大纲应显示嵌套标签',
+  );
+
+  const unformatted = await vscode.workspace.openTextDocument({
+    language: 'snapshot',
+    content: '<Snapshot>\n<Text color="red">内容</Text>\n</Snapshot>',
+  });
+  const formatting = await vscode.commands.executeCommand('vscode.executeFormatDocumentProvider', unformatted.uri, {
+    insertSpaces: true,
+    tabSize: 2,
+  });
+  assert.ok(
+    formatting?.some((edit) => edit.newText === '  '),
+    '格式化应调整嵌套标签缩进',
+  );
 
   const invalid = await vscode.workspace.openTextDocument({
     language: 'snapshot',
