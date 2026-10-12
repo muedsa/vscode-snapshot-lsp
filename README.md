@@ -6,6 +6,21 @@
 
 大纲和面包屑显示 Snapshot 标签层级。使用 VS Code 的“格式化文档”可整理标签和跨行属性的缩进；格式化会遵循当前文件的空格或制表符设置，并保留已有属性换行、文本、注释和 CDATA 内容。
 
+## SVG 路径裁剪
+
+扩展内置的 `@muedsa/snapshot-lsp@0.2.0` 支持 `<ClipPath>`：可补全 `path`、`viewBox`、`fit`、`fillRule` 和 `clipBehavior`，提示缺少 `path` 或无效的 `viewBox`，并在大纲与语法着色中识别该标签。`path` 使用 SVG 路径数据；完整路径命令和坐标的有效性由 Snapshot Parser 在实际解析时检查。
+
+```xml
+<Snapshot type="png">
+  <ClipPath path="M0 0 H240 V240 H0 Z M80 80 H160 V160 H80 Z"
+            viewBox="0 0 240 240" fit="CONTAIN" fillRule="EVEN_ODD">
+    <Container width="240" height="240" color="#38BDF8" />
+  </ClipPath>
+</Snapshot>
+```
+
+完整示例见 [sample/clip-path.snapshot](sample/clip-path.snapshot)。
+
 ## 自定义颜色
 
 扩展为浅色、深色和高对比度主题提供默认颜色。颜色属性、数字、布尔值和枚举值根据 `snapshot-lsp` 的属性目录分别着色。可以在 VS Code 的 `settings.json` 中通过 `workbench.colorCustomizations` 修改，例如：

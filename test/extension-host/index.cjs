@@ -72,6 +72,27 @@ async function run() {
     vscode.commands.executeCommand('vscode.executeCompletionItemProvider', incomplete.uri, new vscode.Position(0, 13));
   await waitFor(async () => (await completion())?.items.some((item) => item.label === 'Container'), '标签补全');
 
+  const clipText = '<Snapshot><ClipPath path="M0 0 H10 V10 Z" viewBox="0 0 0 10" fit="CO';
+  const clip = await vscode.workspace.openTextDocument({ language: 'snapshot', content: clipText });
+  await vscode.window.showTextDocument(clip);
+  await waitFor(
+    () => vscode.languages.getDiagnostics(clip.uri).some((item) => item.code === 'invalid-viewbox'),
+    'ClipPath viewBox 诊断',
+  );
+  const clipSymbols = await vscode.commands.executeCommand('vscode.executeDocumentSymbolProvider', clip.uri);
+  assert.equal(clipSymbols?.[0]?.children[0]?.name, 'ClipPath', '未闭合 ClipPath 应显示在大纲中');
+  await waitFor(
+    async () =>
+      (
+        await vscode.commands.executeCommand(
+          'vscode.executeCompletionItemProvider',
+          clip.uri,
+          new vscode.Position(0, clipText.length),
+        )
+      )?.items.some((item) => item.label === 'CONTAIN'),
+    'ClipPath 枚举补全',
+  );
+
   await vscode.commands.executeCommand('snapshot.restartLanguageServer');
   await waitFor(async () => (await completion())?.items.some((item) => item.label === 'Container'), '重启后的补全');
 }

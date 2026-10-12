@@ -1,3 +1,5 @@
 allowBuilds:
   '@vscode/vsce-sign': false
   esbuild: false
+minimumReleaseAgeExclude:
+  - '@muedsa/snapshot-lsp@0.2.0'

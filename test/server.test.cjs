@@ -90,6 +90,97 @@ test('打包后的 Snapshot LSP 可通过 stdio 提供诊断和补全', async (t
     position: { line: 0, character: 13 },
   });
   assert.ok(completion.result.some((item) => item.label === 'Container'));
+
+  const clipUri = 'file:///snapshot-lsp-clip-path.snapshot';
+  send({
+    method: 'textDocument/didOpen',
+    params: {
+      textDocument: {
+        uri: clipUri,
+        languageId: 'snapshot',
+        version: 1,
+        text: '<Snapshot><ClipPath/></Snapshot>',
+      },
+    },
+  });
+  const missingPath = await waitFor(
+    (message) => message.method === 'textDocument/publishDiagnostics' && message.params.uri === clipUri,
+  );
+  assert.ok(missingPath.params.diagnostics.some((item) => item.code === 'missing-attribute'));
+
+  const clipText = '<Snapshot><ClipPath path="M0 0 H10 V10 Z" viewBox="0 0 0 10" fit="CO';
+  send({
+    method: 'textDocument/didChange',
+    params: {
+      textDocument: { uri: clipUri, version: 2 },
+      contentChanges: [{ text: clipText }],
+    },
+  });
+  const invalidViewBox = await waitFor(
+    (message) =>
+      message.method === 'textDocument/publishDiagnostics' &&
+      message.params.uri === clipUri &&
+      message.params.version === 2,
+  );
+  assert.ok(invalidViewBox.params.diagnostics.some((item) => item.code === 'invalid-viewbox'));
+  const clipCompletion = await request('textDocument/completion', {
+    textDocument: { uri: clipUri },
+    position: { line: 0, character: clipText.length },
+  });
+  assert.ok(clipCompletion.result.some((item) => item.label === 'CONTAIN'));
+
+  const tagText = '<Snapshot><Cli';
+  send({
+    method: 'textDocument/didChange',
+    params: { textDocument: { uri: clipUri, version: 3 }, contentChanges: [{ text: tagText }] },
+  });
+  await waitFor(
+    (message) =>
+      message.method === 'textDocument/publishDiagnostics' &&
+      message.params.uri === clipUri &&
+      message.params.version === 3,
+  );
+  const tagCompletion = await request('textDocument/completion', {
+    textDocument: { uri: clipUri },
+    position: { line: 0, character: tagText.length },
+  });
+  assert.ok(tagCompletion.result.some((item) => item.label === 'ClipPath'));
+
+  const attributeText = '<Snapshot><ClipPath pa';
+  send({
+    method: 'textDocument/didChange',
+    params: { textDocument: { uri: clipUri, version: 4 }, contentChanges: [{ text: attributeText }] },
+  });
+  await waitFor(
+    (message) =>
+      message.method === 'textDocument/publishDiagnostics' &&
+      message.params.uri === clipUri &&
+      message.params.version === 4,
+  );
+  const attributeCompletion = await request('textDocument/completion', {
+    textDocument: { uri: clipUri },
+    position: { line: 0, character: attributeText.length },
+  });
+  assert.ok(attributeCompletion.result.some((item) => item.label === 'path'));
+
+  const validClip =
+    '<Snapshot><ClipPath path="M0 0 H10 V10 Z" viewBox="0 0 10 10" fit="CONTAIN" fillRule="EVEN_ODD"><Container/></ClipPath></Snapshot>';
+  send({
+    method: 'textDocument/didChange',
+    params: { textDocument: { uri: clipUri, version: 5 }, contentChanges: [{ text: validClip }] },
+  });
+  const validDiagnostics = await waitFor(
+    (message) =>
+      message.method === 'textDocument/publishDiagnostics' &&
+      message.params.uri === clipUri &&
+      message.params.version === 5,
+  );
+  assert.deepEqual(validDiagnostics.params.diagnostics, []);
+  const clipHover = await request('textDocument/hover', {
+    textDocument: { uri: clipUri },
+    position: { line: 0, character: validClip.indexOf('ClipPath') + 2 },
+  });
+  assert.match(clipHover.result.contents.value, /SVG 路径/);
   await request('shutdown', null);
   send({ method: 'exit' });
 });

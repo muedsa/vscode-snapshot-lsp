@@ -48,6 +48,15 @@ test('跨行属性值中的尖括号不会结束标签', () => {
   assert.ok(parts(source, 'punctuation').includes('/>'));
 });
 
+test('ClipPath 的 SVG 路径保持字符串着色，枚举属性按目录着色', () => {
+  const source =
+    '<ClipPath path="M0 0 H10 V10 Z" viewBox="0 0 10 10" fit="CONTAIN" fillRule="EVEN_ODD" clipBehavior="ANTI_ALIAS"><Container/></ClipPath>';
+  assert.deepEqual(parts(source, 'tag'), ['ClipPath', 'Container', 'ClipPath']);
+  assert.deepEqual(parts(source, 'attribute'), ['path', 'viewBox', 'fit', 'fillRule', 'clipBehavior']);
+  assert.deepEqual(parts(source, 'string'), ['"M0 0 H10 V10 Z"', '"0 0 10 10"']);
+  assert.deepEqual(parts(source, 'enum'), ['"CONTAIN"', '"EVEN_ODD"', '"ANTI_ALIAS"']);
+});
+
 test('大文件窗口着色保留前文词法状态，只返回窗口内范围', () => {
   const source = '<!-- <Fake/> -->\n<Snapshot><Text color="#fff">内容</Text></Snapshot>\n<Container/>';
   const from = source.indexOf('<Text');

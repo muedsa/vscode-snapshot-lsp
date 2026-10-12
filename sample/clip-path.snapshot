@@ -1,0 +1,9 @@
+<Snapshot type="png">
+  <ClipPath
+    path="M0 0 H240 V240 H0 Z M80 80 H160 V160 H80 Z"
+    viewBox="0 0 240 240"
+    fit="CONTAIN"
+    fillRule="EVEN_ODD">
+    <Container width="240" height="240" color="#38BDF8" />
+  </ClipPath>
+</Snapshot>
