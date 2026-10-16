@@ -8,7 +8,7 @@
 
 ## SVG 路径裁剪
 
-扩展内置的 `@muedsa/snapshot-lsp@0.2.0` 支持 `<ClipPath>`：可补全 `path`、`viewBox`、`fit`、`fillRule` 和 `clipBehavior`，提示缺少 `path` 或无效的 `viewBox`，并在大纲与语法着色中识别该标签。`path` 使用 SVG 路径数据；完整路径命令和坐标的有效性由 Snapshot Parser 在实际解析时检查。
+扩展内置的 `@muedsa/snapshot-lsp@0.2.1` 支持 `<ClipPath>`：可补全 `path`、`viewBox`、`fit`、`fillRule` 和 `clipBehavior`，提示缺少 `path` 或无效的 `viewBox`，并在大纲与语法着色中识别该标签。`path` 使用 SVG 路径数据；完整路径命令和坐标的有效性由 Snapshot Parser 在实际解析时检查。
 
 ```xml
 <Snapshot type="png">
@@ -20,6 +20,12 @@
 ```
 
 完整示例见 [sample/clip-path.snapshot](sample/clip-path.snapshot)。
+
+## 补全行为
+
+VS Code 会向语言服务器声明代码片段能力，因此补全新属性时会把光标放到属性值中；覆盖已有属性名时会保留原有赋值。闭合标签补全会补齐缺少的 `>`。多行枚举属性值补全会同时应用主编辑和额外编辑，替换整个值。
+
+无引号的 URL 或路径值后需要用空格分隔自闭合标记，例如 `<Image url=https://example.com/a.png />`。
 
 ## 自定义颜色
 

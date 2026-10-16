@@ -30,11 +30,11 @@ test('扫描标签、属性、属性值、注释和 CDATA，忽略其中的伪�
     '<Snapshot type="png" debug="true"><!-- <Fake x="bad"> --><Text color="#fff" fontSize="18" fontStyle="BOLD">a <![CDATA[<b>]]></Text></Snapshot>';
   assert.deepEqual(parts(source, 'tag'), ['Snapshot', 'Text', 'Text', 'Snapshot']);
   assert.deepEqual(parts(source, 'attribute'), ['type', 'debug', 'color', 'fontSize', 'fontStyle']);
-  assert.deepEqual(parts(source, 'enum'), ['"png"']);
+  assert.deepEqual(parts(source, 'enum'), ['"png"', '"BOLD"']);
   assert.deepEqual(parts(source, 'boolean'), ['"true"']);
   assert.deepEqual(parts(source, 'color'), ['"#fff"']);
   assert.deepEqual(parts(source, 'number'), ['"18"']);
-  assert.deepEqual(parts(source, 'string'), ['"BOLD"']);
+  assert.deepEqual(parts(source, 'string'), []);
   assert.deepEqual(parts(source, 'comment'), ['<!-- <Fake x="bad"> -->']);
   assert.deepEqual(parts(source, 'cdata'), ['<![CDATA[<b>]]>']);
 });

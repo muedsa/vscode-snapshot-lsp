@@ -72,6 +72,35 @@ async function run() {
     vscode.commands.executeCommand('vscode.executeCompletionItemProvider', incomplete.uri, new vscode.Position(0, 13));
   await waitFor(async () => (await completion())?.items.some((item) => item.label === 'Container'), '标签补全');
 
+  const attributeText = '<Snapshot><Container wi';
+  const attribute = await vscode.workspace.openTextDocument({ language: 'snapshot', content: attributeText });
+  await vscode.window.showTextDocument(attribute);
+  const width = await waitFor(async () => {
+    const result = await vscode.commands.executeCommand(
+      'vscode.executeCompletionItemProvider',
+      attribute.uri,
+      new vscode.Position(0, attributeText.length),
+    );
+    return result?.items.find((item) => item.label === 'width');
+  }, '代码片段属性补全');
+  assert.ok(width.insertText instanceof vscode.SnippetString, 'VS Code 客户端应声明代码片段能力');
+  assert.equal(width.insertText.value, 'width="${1}"');
+
+  const multilineText = '<Snapshot><Text text="中文😀" textDirection="\r\nR\r\n"/></Snapshot>';
+  const multiline = await vscode.workspace.openTextDocument({ language: 'snapshot', content: multilineText });
+  await vscode.window.showTextDocument(multiline);
+  const rtl = await waitFor(async () => {
+    const result = await vscode.commands.executeCommand(
+      'vscode.executeCompletionItemProvider',
+      multiline.uri,
+      new vscode.Position(1, 1),
+    );
+    return result?.items.find((item) => item.label === 'RTL');
+  }, '多行枚举补全');
+  assert.equal(rtl.range.start.line, 1, '主编辑应限制在光标所在行');
+  assert.equal(rtl.range.end.line, 1, '主编辑应限制在光标所在行');
+  assert.ok(rtl.additionalTextEdits?.length, '额外编辑应保留以替换其余行');
+
   const clipText = '<Snapshot><ClipPath path="M0 0 H10 V10 Z" viewBox="0 0 0 10" fit="CO';
   const clip = await vscode.workspace.openTextDocument({ language: 'snapshot', content: clipText });
   await vscode.window.showTextDocument(clip);
