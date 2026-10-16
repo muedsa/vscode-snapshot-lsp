@@ -79,7 +79,7 @@ pnpm run build
 pnpm install --frozen-lockfile
 pnpm test
 pnpm run test:vsix
-code --install-extension vscode-snapshot-lsp-1.1.0.vsix --force
+code --install-extension vscode-snapshot-lsp-1.1.1.vsix --force
 ```
 
 `pnpm run package` 会生成可安装的 VSIX，并把客户端和 Snapshot 语言服务器编入包内。安装 VSIX 的机器无需另行安装 npm 依赖。也可以在 VS Code 的扩展视图中选择“从 VSIX 安装”。
