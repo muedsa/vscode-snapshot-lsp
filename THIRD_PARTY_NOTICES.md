@@ -2,9 +2,9 @@
 
 以下文本来自扩展打包的生产依赖。依赖版本变化后，运行 `pnpm run notices:generate` 更新本文件。
 
-## MIT：@muedsa/snapshot-lsp@0.2.1
+## MIT：@muedsa/snapshot-lsp@0.3.0
 
-- @muedsa/snapshot-lsp@0.2.1
+- @muedsa/snapshot-lsp@0.3.0
 
 ```text
 MIT License

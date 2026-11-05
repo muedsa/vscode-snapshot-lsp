@@ -76,7 +76,7 @@ for (const snippetSupport of [true, false, undefined]) {
     const capabilities =
       snippetSupport === undefined ? {} : { textDocument: { completion: { completionItem: { snippetSupport } } } };
     const initialized = await request('initialize', { processId: process.pid, rootUri: null, capabilities });
-    assert.equal(initialized.result.serverInfo.version, '0.2.1');
+    assert.equal(initialized.result.serverInfo.version, '0.3.0');
     send({ method: 'initialized', params: {} });
     const uri = 'file:///snapshot-lsp-completion.snapshot';
     const open = '<Snapshot><Container wi';
@@ -126,6 +126,36 @@ for (const snippetSupport of [true, false, undefined]) {
     assert.equal(
       applyEdits(multiline, [rtl.textEdit, ...rtl.additionalTextEdits]),
       '<Snapshot><Text text="中文😀" textDirection="RTL"/></Snapshot>',
+    );
+
+    const boolean = '<Snapshot><Text softW';
+    change(5, boolean);
+    const softWrap = (await complete(boolean, { line: 0, character: boolean.length })).find(
+      (item) => item.label === 'softWrap',
+    );
+    assert.equal(softWrap.insertTextFormat, snippetSupport === true ? 2 : 1);
+    assert.equal(softWrap.textEdit.newText, snippetSupport === true ? 'softWrap="${1:true}"' : 'softWrap="true"');
+
+    const decoration = '<Snapshot><Text decoration="underline li"/></Snapshot>';
+    change(6, decoration);
+    const lineThrough = (await complete(decoration, { line: 0, character: decoration.indexOf('li"') + 2 })).find(
+      (item) => item.label === 'LINE_THROUGH',
+    );
+    assert.ok(lineThrough);
+    assert.equal(
+      applyEdits(decoration, [lineThrough.textEdit, ...(lineThrough.additionalTextEdits ?? [])]),
+      '<Snapshot><Text decoration="underline LINE_THROUGH"/></Snapshot>',
+    );
+
+    const unquoted = '<Snapshot><Container padding=8 width="20"/></Snapshot>';
+    change(7, unquoted);
+    const padding = (
+      await complete(unquoted, { line: 0, character: unquoted.indexOf('padding=') + 'padding='.length })
+    ).find((item) => item.label === '8 16');
+    assert.ok(padding);
+    assert.equal(
+      applyEdits(unquoted, [padding.textEdit, ...(padding.additionalTextEdits ?? [])]),
+      '<Snapshot><Container padding="8 16" width="20"/></Snapshot>',
     );
     await request('shutdown', null);
     send({ method: 'exit' });

@@ -57,6 +57,15 @@ test('ClipPath 的 SVG 路径保持字符串着色，枚举属性按目录着色
   assert.deepEqual(parts(source, 'enum'), ['"CONTAIN"', '"EVEN_ODD"', '"ANTI_ALIAS"']);
 });
 
+test('复合语法仅将完整枚举关键字着色为枚举', () => {
+  assert.equal(catalog.Container.attributes.padding.syntax, 'EdgeInsets');
+  assert.equal(catalog.Container.attributes.alignment.enumAliases, true);
+  const source =
+    '<Container alignment="top-left" foregroundGradientBegin="0 1" padding="8 16"><Text decoration="underline"/><Text decoration="underline line-through"/></Container>';
+  assert.deepEqual(parts(source, 'enum'), ['"top-left"', '"underline"']);
+  assert.deepEqual(parts(source, 'string'), ['"0 1"', '"8 16"', '"underline line-through"']);
+});
+
 test('大文件窗口着色保留前文词法状态，只返回窗口内范围', () => {
   const source = '<!-- <Fake/> -->\n<Snapshot><Text color="#fff">内容</Text></Snapshot>\n<Container/>';
   const from = source.indexOf('<Text');

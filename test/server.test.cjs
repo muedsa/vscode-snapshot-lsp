@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { fork } = require('node:child_process');
+const { readFileSync } = require('node:fs');
 const { join } = require('node:path');
 
 test('打包后的 Snapshot LSP 可通过 stdio 提供诊断和补全', async (t) => {
@@ -181,6 +182,31 @@ test('打包后的 Snapshot LSP 可通过 stdio 提供诊断和补全', async (t
     position: { line: 0, character: validClip.indexOf('ClipPath') + 2 },
   });
   assert.match(clipHover.result.contents.value, /SVG 路径/);
+
+  const syntaxUri = 'file:///snapshot-lsp-attribute-syntax.snapshot';
+  const syntax = readFileSync(join(__dirname, '../sample/attribute-syntax.snapshot'), 'utf8');
+  send({
+    method: 'textDocument/didOpen',
+    params: { textDocument: { uri: syntaxUri, languageId: 'snapshot', version: 1, text: syntax } },
+  });
+  const syntaxDiagnostics = await waitFor(
+    (message) => message.method === 'textDocument/publishDiagnostics' && message.params.uri === syntaxUri,
+  );
+  assert.deepEqual(syntaxDiagnostics.params.diagnostics, []);
+  send({
+    method: 'textDocument/didChange',
+    params: {
+      textDocument: { uri: syntaxUri, version: 2 },
+      contentChanges: [{ text: '<Snapshot debug="yes"><Text softWrap=""/></Snapshot>' }],
+    },
+  });
+  const booleanDiagnostics = await waitFor(
+    (message) =>
+      message.method === 'textDocument/publishDiagnostics' &&
+      message.params.uri === syntaxUri &&
+      message.params.version === 2,
+  );
+  assert.equal(booleanDiagnostics.params.diagnostics.filter((item) => item.code === 'invalid-boolean').length, 2);
   await request('shutdown', null);
   send({ method: 'exit' });
 });

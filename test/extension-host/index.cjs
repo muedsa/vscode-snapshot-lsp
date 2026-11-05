@@ -86,6 +86,33 @@ async function run() {
   assert.ok(width.insertText instanceof vscode.SnippetString, 'VS Code 客户端应声明代码片段能力');
   assert.equal(width.insertText.value, 'width="${1}"');
 
+  assert.equal(extension.packageJSON.dependencies['@muedsa/snapshot-lsp'], '^0.3.0');
+  const booleanText = '<Snapshot><Text softW';
+  const boolean = await vscode.workspace.openTextDocument({ language: 'snapshot', content: booleanText });
+  await vscode.window.showTextDocument(boolean);
+  const softWrap = await waitFor(async () => {
+    const result = await vscode.commands.executeCommand(
+      'vscode.executeCompletionItemProvider',
+      boolean.uri,
+      new vscode.Position(0, booleanText.length),
+    );
+    return result?.items.find((item) => item.label === 'softWrap');
+  }, '布尔属性代码片段补全');
+  assert.ok(softWrap.insertText instanceof vscode.SnippetString);
+  assert.equal(softWrap.insertText.value, 'softWrap="${1:true}"');
+
+  const invalidBoolean = await vscode.workspace.openTextDocument({
+    language: 'snapshot',
+    content: '<Snapshot debug="yes"><Text softWrap=""/></Snapshot>',
+  });
+  await vscode.window.showTextDocument(invalidBoolean);
+  await waitFor(
+    () =>
+      vscode.languages.getDiagnostics(invalidBoolean.uri).filter((item) => item.code === 'invalid-boolean').length ===
+      2,
+    '新版布尔属性诊断',
+  );
+
   const multilineText = '<Snapshot><Text text="中文😀" textDirection="\r\nR\r\n"/></Snapshot>';
   const multiline = await vscode.workspace.openTextDocument({ language: 'snapshot', content: multilineText });
   await vscode.window.showTextDocument(multiline);

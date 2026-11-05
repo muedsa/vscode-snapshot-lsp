@@ -8,7 +8,7 @@
 
 ## SVG 路径裁剪
 
-扩展内置的 `@muedsa/snapshot-lsp@0.2.1` 支持 `<ClipPath>`：可补全 `path`、`viewBox`、`fit`、`fillRule` 和 `clipBehavior`，提示缺少 `path` 或无效的 `viewBox`，并在大纲与语法着色中识别该标签。`path` 使用 SVG 路径数据；完整路径命令和坐标的有效性由 Snapshot Parser 在实际解析时检查。
+扩展内置的 `@muedsa/snapshot-lsp@0.3.0` 支持 `<ClipPath>`：可补全 `path`、`viewBox`、`fit`、`fillRule` 和 `clipBehavior`，提示缺少 `path` 或无效的 `viewBox`，并在大纲与语法着色中识别该标签。`path` 使用 SVG 路径数据；完整路径命令和坐标的有效性由 Snapshot Parser 在实际解析时检查。
 
 ```xml
 <Snapshot type="png">
@@ -21,15 +21,29 @@
 
 完整示例见 [sample/clip-path.snapshot](sample/clip-path.snapshot)。
 
+## 属性简写与兼容性
+
+内置的 LSP 0.3.0 对齐 Snapshot Parser 2026-11-05 的属性语法，可为以下写法提供补全、悬停说明和静态诊断。综合示例见 [sample/attribute-syntax.snapshot](sample/attribute-syntax.snapshot)。实际渲染这些新写法时，渲染端也必须使用包含该语法变更的 Snapshot Parser；升级编辑器扩展不会升级渲染端。
+
+| 属性             | 新写法示例                                                                               | 说明                                                                                              |
+| ---------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| 边距、坐标、圆角 | `padding="8 16"`、`alignment="-1 0"`、`borderRadius="12 / 6"`                            | 边距按 CSS 的上、右、下、左顺序展开。旧 `(1,2,3,4)` 则按左、上、右、下解释，等价新 `2 3 4 1`。    |
+| 枚举与字体       | `mainAxisAlignment="space-between"`、`fontFamily="Arial, Noto Sans"`                     | 内置枚举接受大小写及连字符别名；字体名保留原大小写和内部空白，空项报错。                          |
+| 变换与边框       | `transform="translate(12,8) rotate(30deg)"`、`border="2 red"`                            | 旋转必须带 `deg` 或 `rad`；变换函数按书写顺序右乘，作用到点时右侧先发生。边框省略样式时默认实线。 |
+| 列表与阴影       | `gradientStops="0 .5 1"`、`decoration="underline line-through"`、`boxShadow="0 2 red 4"` | 装饰和色标可用空白分隔；阴影中的 `4` 是模糊半径。                                                 |
+| 布尔值           | `<Text softWrap>`、`softWrap="false"`                                                    | 裸属性为 `true`，未提供属性时保留默认值；显式空串、`yes`、`1` 等会报错。                          |
+
+`Snapshot.type` 仍只接受 png/jpg/webp；`ClipPath.fit` 仍只接受 FILL/CONTAIN，`fillRule` 仍只接受 NON_ZERO/EVEN_ODD。URL、正文、字体名和普通 OpenType 标签不会按枚举别名转换。
+
 ## 补全行为
 
-VS Code 会向语言服务器声明代码片段能力，因此补全新属性时会把光标放到属性值中；覆盖已有属性名时会保留原有赋值。闭合标签补全会补齐缺少的 `>`。多行枚举属性值补全会同时应用主编辑和额外编辑，替换整个值。
+VS Code 会向语言服务器声明代码片段能力，因此补全新属性时会把光标放到属性值中；布尔属性默认填入 `true`。覆盖已有属性名时会保留原有赋值。闭合标签补全会补齐缺少的 `>`。多行属性值补全会同时应用主编辑和额外编辑，替换整个值。装饰列表补全只替换当前项，复合值补全会为需要空白的无引号赋值补上引号。
 
 无引号的 URL 或路径值后需要用空格分隔自闭合标记，例如 `<Image url=https://example.com/a.png />`。
 
 ## 自定义颜色
 
-扩展为浅色、深色和高对比度主题提供默认颜色。颜色属性、数字、布尔值和枚举值根据 `snapshot-lsp` 的属性目录分别着色。可以在 VS Code 的 `settings.json` 中通过 `workbench.colorCustomizations` 修改，例如：
+扩展为浅色、深色和高对比度主题提供默认颜色。颜色属性、数字、布尔值和枚举值根据 `snapshot-lsp` 的属性目录分别着色；复合属性只有在整个值是单个枚举关键字时使用枚举颜色。可以在 VS Code 的 `settings.json` 中通过 `workbench.colorCustomizations` 修改，例如：
 
 ```json
 {

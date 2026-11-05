@@ -167,8 +167,8 @@ importers:
   .:
     dependencies:
       '@muedsa/snapshot-lsp':
-        specifier: ^0.2.1
-        version: 0.2.1
+        specifier: ^0.3.0
+        version: 0.3.0
       vscode-languageclient:
         specifier: ^9.0.1
         version: 9.0.1
@@ -404,8 +404,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@muedsa/snapshot-lsp@0.2.1':
-    resolution: {integrity: sha512-Tz4hBVRmi6bjF3Zu478EC+7568ztfNzPB2vwxdouxQ9iOSA6TbsncywJlSuuU2AKjUCtdYYPCKlhNpq5lbvRBg==, tarball: https://npm.pkg.github.com/download/@muedsa/snapshot-lsp/0.2.1/854fd8e99879513c9cdb1f653c9d2b0487f88d60}
+  '@muedsa/snapshot-lsp@0.3.0':
+    resolution: {integrity: sha512-i3OxM7AN5+DJpq92RRdPWYFgPp+VhS4QYF/Y8VFt30NUu4VSP+a8FyhT0D9J1KVFj2AgclqZp2w7jU50fEbLsg==, tarball: https://npm.pkg.github.com/download/@muedsa/snapshot-lsp/0.3.0/c73186f3b0d68604e3ee3800f8d5c01ea65b96cc}
     engines: {node: '>=22'}
     hasBin: true
 
@@ -1248,7 +1248,7 @@ snapshots:
   '@esbuild/win32-x64@0.28.2':
     optional: true
 
-  '@muedsa/snapshot-lsp@0.2.1':
+  '@muedsa/snapshot-lsp@0.3.0':
     dependencies:
       vscode-languageserver: 9.0.1
       vscode-languageserver-textdocument: 1.0.15

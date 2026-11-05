@@ -14,7 +14,12 @@ export interface HighlightWindow {
 
 export type HighlightCatalog = Record<
   string,
-  { attributes: Record<string, { kind: string; values?: readonly string[] }> }
+  {
+    attributes: Record<
+      string,
+      { kind: string; values?: readonly string[]; syntax?: PropertyKey; enumAliases?: boolean }
+    >;
+  }
 >;
 
 const tagName = /[A-Za-z][A-Za-z0-9:_-]*/y;
@@ -22,12 +27,18 @@ const attributeName = /[A-Za-z_:][A-Za-z0-9:._-]*/y;
 const whitespace = /\s/;
 const unquotedValueEnd = /[\s/>]/;
 
-function attributeValueKind(catalog: HighlightCatalog, tag: string, attribute: string): HighlightKind {
+function attributeValueKind(catalog: HighlightCatalog, tag: string, attribute: string, value: string): HighlightKind {
   const spec = catalog[tag]?.attributes[attribute];
   if (!spec) return 'string';
   if (spec.kind === 'color') return 'color';
   if (spec.kind === 'number' || spec.kind === 'integer') return 'number';
   if (spec.kind === 'boolean') return 'boolean';
+  if (spec.syntax) {
+    const unquoted =
+      value[0] === '"' || value[0] === "'" ? value.slice(1, value.at(-1) === value[0] ? -1 : undefined) : value;
+    const candidate = spec.enumAliases ? unquoted.trim().toUpperCase().replaceAll('-', '_') : unquoted;
+    return spec.values?.some((item) => item === candidate) ? 'enum' : 'string';
+  }
   if (spec.values?.length) return 'enum';
   return 'string';
 }
@@ -107,7 +118,7 @@ export function scanHighlights(source: string, catalog: HighlightCatalog, window
       } else {
         while (cursor < source.length && !unquotedValueEnd.test(source[cursor])) cursor++;
       }
-      add(attributeValueKind(catalog, name[0], attr[0]), start, cursor);
+      add(attributeValueKind(catalog, name[0], attr[0], source.slice(start, cursor)), start, cursor);
     }
     i = cursor;
   }

@@ -156,7 +156,7 @@
     "vscode:prepublish": "pnpm run notices:check && pnpm run build"
   },
   "dependencies": {
-    "@muedsa/snapshot-lsp": "^0.2.1",
+    "@muedsa/snapshot-lsp": "^0.3.0",
     "vscode-languageclient": "^9.0.1"
   },
   "devDependencies": {
