@@ -2,7 +2,7 @@
   "name": "vscode-snapshot-lsp",
   "displayName": "Snapshot DSL",
   "description": "Snapshot DSL 的 VS Code 语言服务扩展",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "publisher": "muedsa",
   "license": "MIT",
   "repository": {
